@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">F_Y_P</string>
+    <string name="accessibility_service_description">Blocks selected apps from being opened</string>
+    <!-- Add other strings here if needed -->
 </resources>
