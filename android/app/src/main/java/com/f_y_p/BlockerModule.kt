@@ -54,4 +54,16 @@ class BlockerModule(reactContext: ReactApplicationContext) :
         }
         promise.resolve(appsArray)
     }
+
+    @ReactMethod
+    fun setBlockingEnabled(enabled: Boolean) {
+        prefs.edit().putBoolean("blocking_enabled", enabled).apply()
+        Log.d("BlockerModule", "setBlockingEnabled: $enabled")
+    }
+
+    @ReactMethod
+    fun isBlockingEnabled(promise: Promise) {
+        val enabled = prefs.getBoolean("blocking_enabled", true)
+        promise.resolve(enabled)
+    }
 }

@@ -18,10 +18,17 @@ class AppBlockerService : AccessibilityService() {
         return allBlocked
     }
 
+    private fun isBlockingEnabled(): Boolean {
+        val prefs = applicationContext.getSharedPreferences("blocked_apps", Context.MODE_PRIVATE)
+        return prefs.getBoolean("blocking_enabled", true)
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
+        if (!isBlockingEnabled()) return // <--- Only block if enabled
+
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event.packageName?.toString()
-            val blockedApps = getBlockedApps() // dynamic list
+            val blockedApps = getBlockedApps()
             Log.d("AppBlockerService", "onAccessibilityEvent: packageName=$packageName, blockedApps=$blockedApps")
 
             if (packageName != null && blockedApps.contains(packageName)) {
