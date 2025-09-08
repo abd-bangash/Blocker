@@ -1,97 +1,197 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native App & Website Blocker
 
-# Getting Started
+A comprehensive React Native app with native Android integration that blocks apps and websites to help users maintain focus and productivity.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+## Features
 
-## Step 1: Start Metro
+### Phase 1 - App Blocking ✅
+- **Accessibility Service Integration**: Monitors foreground apps in real-time
+- **Custom Blocking Screen**: Full-screen blocking interface with professional design  
+- **React Native Bridge**: Native modules expose app blocking functionality
+- **Dynamic Block List Management**: Add/remove apps via user-friendly UI
+- **Permission Handling**: Automatic accessibility service permission requests
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+### Phase 2 - Website Blocking ✅
+- **VPN Service Implementation**: Intercepts and filters network traffic
+- **DNS/Network Filtering**: Blocks websites at the network level
+- **Domain Management**: Add/remove blocked domains through React Native
+- **VPN Permission Flow**: Seamless VPN permission request handling
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+### Phase 3 - Advanced Features ✅
+- **Smart Scheduling**: Time-based blocking with customizable schedules
+- **Detailed Analytics**: Comprehensive blocking statistics and reports
+- **Security Protection**: PIN/password protection for blocker settings
+- **Persistent Storage**: Secure data storage with react-native-keychain
 
-```sh
-# Using npm
-npm start
+## Tech Stack
 
-# OR using Yarn
-yarn start
+- **Frontend**: React Native with TypeScript
+- **Navigation**: Expo Router with tab-based architecture
+- **State Management**: React Context API
+- **Storage**: AsyncStorage + react-native-keychain for security
+- **Native Integration**: Custom Native Modules (Java/Kotlin)
+- **UI Design**: Modern Material Design principles
+
+## Architecture
+
+### React Native Layer
+```
+app/
+├── (tabs)/
+│   ├── index.tsx          # App blocking management
+│   ├── websites.tsx       # Website blocking management  
+│   ├── schedule.tsx       # Time-based scheduling
+│   └── reports.tsx        # Analytics and statistics
+└── services/
+    ├── BlockerService.ts     # App blocking service
+    ├── WebsiteBlockerService.ts # Website blocking service
+    ├── ScheduleService.ts    # Scheduling management
+    └── ReportsService.ts     # Analytics service
 ```
 
-## Step 2: Build and run your app
-
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+### Native Android Layer
+```
+android/app/src/main/java/com/boltexpo/
+├── BlockerModule.java                    # App blocking native module
+├── WebsiteBlockerModule.java             # Website blocking native module
+├── BlockedAppsManager.java               # App blocking logic manager
+├── BlockedWebsitesManager.java           # Website blocking logic manager
+├── AppBlockerAccessibilityService.java   # Accessibility service
+├── WebsiteBlockerVPNService.java         # VPN service implementation
+└── AppBlockingActivity.java              # Custom blocking screen
 ```
 
-### iOS
+## Setup Instructions
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+### Prerequisites
+- Node.js 18+
+- React Native CLI
+- Android Studio
+- Android SDK (API Level 26+)
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+### Installation
 
-```sh
-bundle install
+1. **Clone and Install Dependencies**
+   ```bash
+   git clone <repository>
+   cd react-native-app-blocker
+   npm install
+   ```
+
+2. **Android Setup**
+   ```bash
+   cd android
+   ./gradlew clean
+   ./gradlew build
+   ```
+
+3. **Run the App**
+   ```bash
+   npx react-native run-android
+   ```
+
+### Required Permissions
+
+The app requires these critical permissions:
+
+```xml
+<uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
+<uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
+<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 ```
 
-Then, and every time you update your native dependencies, run:
+## Usage Examples
 
-```sh
-bundle exec pod install
+### App Blocking
+```javascript
+// Add an app to the blocked list
+await BlockerService.addBlockedApp('com.facebook.katana');
+
+// Enable app blocking
+await BlockerService.setBlockingEnabled(true);
+
+// Check if accessibility permission is granted
+const hasPermission = await BlockerService.checkAccessibilityPermission();
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Website Blocking  
+```javascript
+// Add a website to the blocked list
+await WebsiteBlockerService.addBlockedWebsite('facebook.com');
 
-```sh
-# Using npm
-npm run ios
-
-# OR using Yarn
-yarn ios
+// Enable website blocking (starts VPN service)
+await WebsiteBlockerService.setWebsiteBlockingEnabled(true);
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Scheduling
+```javascript
+// Create a work hours blocking schedule
+await ScheduleService.addSchedule({
+  name: 'Work Hours',
+  startTime: '09:00',
+  endTime: '17:00', 
+  days: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'],
+  type: 'both', // blocks both apps and websites
+  isActive: true
+});
+```
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+## Key Components
 
-## Step 3: Modify your app
+### Native Services
 
-Now that you have successfully run the app, let's make changes!
+1. **AppBlockerAccessibilityService**
+   - Monitors app launches using AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
+   - Shows blocking screen when blocked apps are detected
+   - Runs as a system-level service
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+2. **WebsiteBlockerVPNService** 
+   - Implements local VPN to intercept network traffic
+   - Filters DNS requests and HTTP/HTTPS traffic
+   - Drops packets for blocked domains
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+3. **BlockedAppsManager & BlockedWebsitesManager**
+   - Singleton pattern for managing blocked lists
+   - Thread-safe operations
+   - In-memory caching with persistent storage
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+### React Native Integration
 
-## Congratulations! :tada:
+- **Native Modules**: Seamless bridge between RN and Android services
+- **Event Emitters**: Real-time communication from native to RN
+- **Promise-based APIs**: Async operations with proper error handling
+- **TypeScript**: Full type safety across the codebase
 
-You've successfully run and modified your React Native App. :partying_face:
+## Production Deployment
 
-### Now what?
+### Build Configuration
+```bash
+# Generate signed APK
+cd android
+./gradlew assembleRelease
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+# Generate Android App Bundle (recommended for Play Store)  
+./gradlew bundleRelease
+```
 
-# Troubleshooting
+### Play Store Requirements
+- Target SDK 33+ (Android 13)
+- 64-bit architecture support
+- Proper permission justifications for sensitive permissions
+- Privacy policy for data collection
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## Security Considerations
 
-# Learn More
+- **Accessibility Service**: Requires explicit user consent via system settings
+- **VPN Service**: Local VPN only, no external traffic routing
+- **Secure Storage**: Sensitive data encrypted using react-native-keychain
+- **Permission Model**: Minimal permissions, clear user consent flows
 
-To learn more about React Native, take a look at the following resources:
+## Performance Optimization
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- **Efficient Packet Processing**: Minimal CPU overhead in VPN service
+- **Battery Optimization**: Optimized background service management
+- **Memory Management**: Proper lifecycle management for native services
+- **Storage Efficiency**: Compressed data storage, automatic cleanup
+
+This implementation provides a production-ready foundation for an app and website blocking solution with enterprise-grade native Android integration.
