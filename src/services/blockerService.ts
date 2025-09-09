@@ -23,3 +23,14 @@ export const isBlockingEnabled = async (): Promise<boolean> => {
 export const setBlockingEnabled = async (enabled: boolean) => {
     await Blocker.setBlockingEnabled(enabled);
 };
+
+export const getBlockSchedule = async (): Promise<{ start: number; end: number } | null> => {
+    if (!Blocker.getBlockSchedule) return null;
+    return await Blocker.getBlockSchedule();
+};
+
+export const setBlockSchedule = async (start: number, end: number) => {
+    if (Blocker.setBlockSchedule) {
+        await Blocker.setBlockSchedule(start, end);
+    }
+};

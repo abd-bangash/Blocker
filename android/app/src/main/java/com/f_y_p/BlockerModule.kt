@@ -66,4 +66,20 @@ class BlockerModule(reactContext: ReactApplicationContext) :
         val enabled = prefs.getBoolean("blocking_enabled", true)
         promise.resolve(enabled)
     }
+
+    @ReactMethod
+    fun setBlockSchedule(start: Int, end: Int) {
+        prefs.edit().putInt("block_start", start).putInt("block_end", end).apply()
+        Log.d("BlockerModule", "setBlockSchedule: $start to $end")
+    }
+
+    @ReactMethod
+    fun getBlockSchedule(promise: Promise) {
+        val start = prefs.getInt("block_start", -1)
+        val end = prefs.getInt("block_end", -1)
+        val map = Arguments.createMap()
+        map.putInt("start", start)
+        map.putInt("end", end)
+        promise.resolve(map)
+    }
 }

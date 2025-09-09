@@ -23,8 +23,24 @@ class AppBlockerService : AccessibilityService() {
         return prefs.getBoolean("blocking_enabled", true)
     }
 
+    private fun isWithinSchedule(): Boolean {
+        val prefs = applicationContext.getSharedPreferences("blocked_apps", Context.MODE_PRIVATE)
+        val start = prefs.getInt("block_start", -1)
+        val end = prefs.getInt("block_end", -1)
+        if (start == -1 || end == -1) return true // always block if not set
+
+        val now = java.util.Calendar.getInstance()
+        val minutesNow = now.get(java.util.Calendar.HOUR_OF_DAY) * 60 + now.get(java.util.Calendar.MINUTE)
+        return if (start < end) {
+            minutesNow in start until end
+        } else {
+            // Overnight schedule (e.g., 22:00 to 06:00)
+            minutesNow >= start || minutesNow < end
+        }
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (!isBlockingEnabled()) return // <--- Only block if enabled
+        if (!isBlockingEnabled() || !isWithinSchedule()) return // <--- Only block if enabled and within schedule
 
         if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             val packageName = event.packageName?.toString()
