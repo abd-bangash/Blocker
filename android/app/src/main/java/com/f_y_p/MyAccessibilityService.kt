@@ -10,6 +10,23 @@ import com.f_y_p.BlockedActivity
 
 class AppBlockerService : AccessibilityService() {
 
+    private val handler = android.os.Handler()
+    private val checkRunnable = object : Runnable {
+        override fun run() {
+            if (isBlockingEnabled() && isWithinSchedule()) {
+                val packageName = rootInActiveWindow?.packageName?.toString()
+
+                val blockedApps = getBlockedApps()
+                if (packageName != null && blockedApps.contains(packageName)) {
+                    val intent = Intent(this@AppBlockerService, BlockedActivity::class.java)
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    intent.putExtra("APP_NAME", packageName)
+                    startActivity(intent)
+                }
+            }
+            handler.postDelayed(this, 5000) // check every 5 sec
+        }
+    }
     private fun getBlockedApps(): List<String> {
         val prefs = applicationContext.getSharedPreferences("blocked_apps", Context.MODE_PRIVATE)
         val savedApps = prefs.getStringSet("apps", emptySet()) ?: emptySet()
@@ -42,7 +59,7 @@ class AppBlockerService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (!isBlockingEnabled() || !isWithinSchedule()) return // <--- Only block if enabled and within schedule
 
-        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+        if (event?.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED ) {
             val packageName = event.packageName?.toString()
             val blockedApps = getBlockedApps()
             Log.d("AppBlockerService", "onAccessibilityEvent: packageName=$packageName, blockedApps=$blockedApps")
@@ -57,7 +74,9 @@ class AppBlockerService : AccessibilityService() {
         }
     }
 
-    override fun onInterrupt() {}
+    override fun onInterrupt() {
+         handler.removeCallbacks(checkRunnable)
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -67,5 +86,6 @@ class AppBlockerService : AccessibilityService() {
             notificationTimeout = 100
         }
         serviceInfo = info
+        handler.post(checkRunnable)
     }
 }
