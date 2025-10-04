@@ -7,4 +7,5 @@ export interface BlockedApp {
 export interface InstalledApp {
     packageName: string;
     name: string;
+    usage: number
 }

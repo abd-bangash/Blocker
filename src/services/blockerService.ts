@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import { BlockedApp } from '../types/apps';
 
-const { Blocker } = NativeModules;
+const { Blocker, WebsiteBlockerModule } = NativeModules;
 
 export const getBlockedApps = async (): Promise<BlockedApp[]> => {
     const apps = await Blocker.getBlockedApps();
@@ -33,4 +33,26 @@ export const setBlockSchedule = async (start: number, end: number) => {
     if (Blocker.setBlockSchedule) {
         await Blocker.setBlockSchedule(start, end);
     }
+};
+
+export const getUsageLimit = async (packageName: string): Promise<number> => {
+    if (!Blocker.getUsageLimit) return 0;
+    return await Blocker.getUsageLimit(packageName);
+};
+
+export const setUsageLimit = async (packageName: string, minutes: number) => {
+    if (Blocker.setUsageLimit) await Blocker.setUsageLimit(packageName, minutes);
+};
+
+export const getBlockedWebsites = async (): Promise<string[]> => {
+    return await WebsiteBlockerModule.getBlockedWebsites();
+};
+
+export const addBlockedWebsite = async (url: string): Promise<void> => {
+    console.log(WebsiteBlockerModule)
+    await WebsiteBlockerModule.addBlockedWebsite(url);
+};
+
+export const removeBlockedWebsite = async (url: string): Promise<void> => {
+    await WebsiteBlockerModule.removeBlockedWebsite(url);
 };

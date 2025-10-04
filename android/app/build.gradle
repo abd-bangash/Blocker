@@ -111,6 +111,8 @@ dependencies {
     // React Native runtime
     implementation("com.facebook.react:react-android")
 
+    //dns library
+    implementation "org.minidns:minidns-core:1.0.4"
     // Kotlin standard library (explicitly)
     implementation "org.jetbrains.kotlin:kotlin-stdlib:${rootProject.ext.kotlinVersion}"
 
