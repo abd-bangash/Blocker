@@ -1,4 +1,4 @@
-package com.f_y_p   // use your actual package name
+package com.f_y_p
 
 import android.os.Bundle
 import android.widget.TextView
@@ -9,8 +9,15 @@ class BlockedActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_blocked)
 
-        val pkg = intent.getStringExtra("APP_NAME")
-        findViewById<TextView>(R.id.blockedText).text =
-            "The app $pkg is blocked!"
+        val appName = intent.getStringExtra("APP_NAME")
+        val websiteUrl = intent.getStringExtra("WEBSITE_URL")
+
+        val message = when {
+            appName != null -> "🚫 The app $appName is blocked!"
+            websiteUrl != null -> "🚫 The website $websiteUrl is blocked!"
+            else -> "🚫 This content is blocked!"
+        }
+
+        findViewById<TextView>(R.id.blockedText).text = message
     }
 }

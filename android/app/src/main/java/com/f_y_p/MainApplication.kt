@@ -9,16 +9,25 @@ import com.facebook.react.ReactNativeHost
 import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
+import com.f_y_p.BlockerPackage
+import com.f_y_p.WebsiteBlockerPackage
+import com.f_y_p.InstalledAppsPackage
+import com.f_y_p.UsageStatsPackage
 
 class MainApplication : Application(), ReactApplication {
 
   override val reactNativeHost: ReactNativeHost =
       object : DefaultReactNativeHost(this) {
-        override fun getPackages(): List<ReactPackage> =
-            PackageList(this).packages.apply {
-              add(BlockerPackage())
-              add(InstalledAppsPackage())
-            }
+        override fun getPackages(): List<ReactPackage> {
+          val packages = PackageList(this).packages.toMutableList()
+
+          packages.add(BlockerPackage())         // for apps
+          packages.add(WebsiteBlockerPackage())  // for websites
+          packages.add(InstalledAppsPackage())
+          packages.add(UsageStatsPackage())
+
+          return packages
+        }
 
         override fun getJSMainModuleName(): String = "index"
 
