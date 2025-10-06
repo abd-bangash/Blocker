@@ -1,6 +1,6 @@
 // filepath: src/screens/HomeScreen.tsx
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, Switch, StatusBar, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet,ScrollView, FlatList, TouchableOpacity, Alert, Switch, StatusBar, Modal, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BlockedAppItem from '../components/BlockedAppItem';
 import EmptyState from '../components/EmptyState';
@@ -102,7 +102,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.main}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 32, flexGrow: 1 }}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
       <View style={styles.header}>
         <Text style={styles.title}>App Blocker</Text>
@@ -112,7 +113,7 @@ export default function HomeScreen() {
             value={isBlocking}
             onValueChange={toggleBlocking}
             trackColor={{ false: '#E2E8F0', true: '#BFDBFE' }}
-            thumbColor={isBlocking ? '#2563EB' : '#64748B'}
+            thumbColor={isBlocking ? '#000000ff' : '#64748B'}
           />
         </View>
       </View>
@@ -127,22 +128,39 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      {/* Action Buttons Row */}
+      <View style={styles.fabRow}>
+       
+        <TouchableOpacity style={[styles.fab, { backgroundColor: '#030403ff' }]} onPress={() => navigation.navigate('UsageLimit')}>
+          <Text style={styles.fabIcon}>⏱️</Text>
+          <Text style={styles.fabLabel}>Limit App Usage</Text>
+        </TouchableOpacity>
+        
+      </View>
+
 
       {/* Blocked Apps Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Blocked Apps</Text>
         <FlatList
           data={blockedApps}
+          horizontal
           renderItem={({ item }) => (
-            <BlockedAppItem item={item as BlockedApp} onRemove={handleRemoveBlockedApp} />
+            <View style={styles.squareAppCard}>
+              <Text style={styles.appName} numberOfLines={1}>{item.name}</Text>
+              <Text style={styles.appPkg} numberOfLines={1}>{item.packageName}</Text>
+              <TouchableOpacity onPress={() => handleRemoveBlockedApp(item.packageName)}>
+                <Text style={{ color: '#EF4444', fontWeight: 'bold', marginTop: 8 }}>Remove</Text>
+              </TouchableOpacity>
+            </View>
           )}
           keyExtractor={item => item.packageName}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           ListEmptyComponent={<EmptyState />}
+          contentContainerStyle={{ paddingVertical: 8 }}
         />
         <TouchableOpacity
-          style={[styles.addAppButton, { backgroundColor: '#2563EB' }]}
+          style={[styles.addAppButton, { backgroundColor: '#000000ff' }]}
           onPress={() => setShowInstalledModal(true)}
         >
           <Text style={styles.addAppButtonText}>+ Add App</Text>
@@ -154,52 +172,40 @@ export default function HomeScreen() {
         <Text style={styles.sectionTitle}>Blocked Websites</Text>
         <FlatList
           data={blockedWebsites}
+          horizontal
           renderItem={({ item }) => (
-            <View style={styles.websiteCard}>
-              <Text style={styles.websiteName}>{item}</Text>
+            <View style={styles.squareWebsiteCard}>
+              <Text style={styles.websiteName} numberOfLines={2}>{item}</Text>
               <TouchableOpacity onPress={async () => {
                 await removeBlockedWebsite(item);
                 loadBlockedWebsites();
               }}>
-                <Text style={{ color: '#EF4444', fontWeight: 'bold' }}>Remove</Text>
+                <Text style={{ color: '#EF4444', fontWeight: 'bold', marginTop: 8 }}>Remove</Text>
               </TouchableOpacity>
             </View>
           )}
           keyExtractor={item => item}
-          style={styles.list}
-          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
           ListEmptyComponent={<EmptyState />}
+          contentContainerStyle={{ paddingVertical: 8 }}
         />
         <TouchableOpacity
-          style={[styles.addWebsiteButton, { backgroundColor: '#F59E42' }]}
+          style={[styles.addWebsiteButton, { backgroundColor: '#000000ff' }]}
           onPress={() => setShowAddWebsiteModal(true)}
         >
           <Text style={styles.addWebsiteButtonText}>+ Add Website</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons Row */}
-      <View style={styles.fabRow}>
-        <TouchableOpacity style={[styles.fab, { backgroundColor: '#2563EB' }]} onPress={() => setShowInstalledModal(true)}>
-          <Text style={styles.fabIcon}>+</Text>
-          <Text style={styles.fabLabel}>Add App</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.fab, { backgroundColor: '#16A34A' }]} onPress={() => navigation.navigate('UsageLimit')}>
-          <Text style={styles.fabIcon}>⏱️</Text>
-          <Text style={styles.fabLabel}>Usage Limit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={[styles.fab, { backgroundColor: '#F59E42' }]} onPress={() => navigation.navigate('WebsiteBlocker')}>
-          <Text style={styles.fabIcon}>🌐</Text>
-          <Text style={styles.fabLabel}>Websites</Text>
-        </TouchableOpacity>
-      </View>
-
+      </ScrollView>
       {/* Modals */}
       <InstalledAppsModal
         visible={showInstalledModal}
         onClose={() => setShowInstalledModal(false)}
-        onAppSelect={async (app: InstalledApp) => {
-          await addBlockedApp(app.packageName);
+        onAppsSelect={async (apps: InstalledApp[]) => {
+          for (const app of apps) {
+            await addBlockedApp(app.packageName);
+          }
           loadBlockedApps();
           setShowInstalledModal(false);
         }}
@@ -211,6 +217,7 @@ export default function HomeScreen() {
         initialStart={schedule?.start ?? 0}
         initialEnd={schedule?.end ?? 480}
       />
+
       <Modal visible={showAddWebsiteModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -245,6 +252,7 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  main:{flex: 1, backgroundColor: '#ffffffc6', height:'auto'},
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   header: { padding: 20, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   title: { fontSize: 28, fontWeight: '700', color: '#1E293B', marginBottom: 12 },
@@ -254,19 +262,16 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#1E293B', marginBottom: 6 },
   sectionValue: { fontSize: 16, color: '#475569', flex: 1 },
   sectionAction: { marginLeft: 12, paddingHorizontal: 12, paddingVertical: 4, backgroundColor: '#E0E7EF', borderRadius: 8 },
-  sectionActionText: { color: '#2563EB', fontWeight: 'bold' },
+  sectionActionText: { color: '#020202ff', fontWeight: 'bold' },
   row: { flexDirection: 'row', alignItems: 'center' },
   list: { maxHeight: 220 },
   fabRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     alignItems: 'center',
-    position: 'absolute',
-    bottom: 24,
     left: 0,
     right: 0,
     paddingHorizontal: 16,
-    zIndex: 10,
   },
   fab: {
     flex: 1,
@@ -285,7 +290,7 @@ const styles = StyleSheet.create({
   fabIcon: { fontSize: 24, color: '#FFF', fontWeight: 'bold' },
   fabLabel: { fontSize: 12, color: '#FFF', fontWeight: 'bold', marginTop: 2 },
   websiteCard: {
-    backgroundColor: '#FFF7ED',
+    backgroundColor: '#ffffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -335,4 +340,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   addAppButtonText: { color: '#FFF', fontWeight: 'bold', fontSize: 16 },
+  appCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  appName: { fontSize: 16, color: '#1E293B', fontWeight: '500' },
+  appPkg: { fontSize: 14, color: '#6B7280', marginTop: 4 },
+  squareAppCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    marginRight: 12,
+    width: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  squareWebsiteCard: {
+    backgroundColor: '#f8fafc',
+    borderRadius: 12,
+    padding: 16,
+    marginRight: 12,
+    width: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
 });
